@@ -4,6 +4,7 @@ const BASE_URL = 'https://invetory-api-exdv.onrender.com/api/v1';
 
 const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
+  timeout: 20000,
   headers: { 'Content-Type': 'application/json' },
 });
 

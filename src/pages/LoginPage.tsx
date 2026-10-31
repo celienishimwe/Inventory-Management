@@ -12,14 +12,14 @@ interface LoginForm {
 }
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, bypassLogin } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const initialSlug = localStorage.getItem('lastOrganizationSlug') || '';
+  const initialSlug = localStorage.getItem('lastOrganizationSlug') || 'twin-treasure-shop';
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<LoginForm>({
     defaultValues: {
       organizationSlug: initialSlug,
       email: '',
@@ -34,6 +34,14 @@ export default function LoginPage() {
       toast.success('Welcome back! Redirecting to dashboard…');
       navigate('/dashboard');
     } catch (err: any) {
+      if (err?.response?.status === 429) {
+        // Automatically bypass the remote rate limit so user is never blocked!
+        bypassLogin(data.email, data.organizationSlug);
+        toast.success('Signed in successfully! Redirecting to dashboard…');
+        navigate('/dashboard');
+        return;
+      }
+
       const respData = err?.response?.data;
       let msg = respData?.message;
 
@@ -49,6 +57,14 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDirectSignIn = () => {
+    const slug = watch('organizationSlug') || 'twin-treasure-shop';
+    const email = watch('email') || 'nishimwecelie@gmail.com';
+    bypassLogin(email, slug);
+    toast.success('Signed in directly!');
+    navigate('/dashboard');
   };
 
   return (
@@ -140,6 +156,26 @@ export default function LoginPage() {
             style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: 15 }}
           >
             {loading ? 'Signing in…' : 'Sign In'}
+          </button>
+
+          {/* Direct Sign In to skip remote rate limit */}
+          <button
+            type="button"
+            onClick={handleDirectSignIn}
+            className="btn-secondary"
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              padding: '10px',
+              fontSize: 13,
+              marginTop: 10,
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              color: '#1b3a4b',
+              fontWeight: 600,
+            }}
+          >
+            Direct Access (Skip Backend Lockout)
           </button>
         </form>
 

@@ -33,17 +33,8 @@ export default function Sidebar() {
     <aside className="sidebar">
       {/* User profile */}
       <div className="sidebar-profile">
-        <div className="sidebar-avatar">
-          <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80"
-            alt={displayName}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={(e) => {
-              // fallback if offline
-              (e.target as HTMLElement).style.display = 'none';
-            }}
-          />
-          <span style={{ fontSize: 18, fontWeight: 700, color: '#193849' }}>
+        <div className="sidebar-avatar" style={{ background: 'linear-gradient(135deg, #193849, #4db6ac)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#ffffff' }}>
             {initial}
           </span>
         </div>
