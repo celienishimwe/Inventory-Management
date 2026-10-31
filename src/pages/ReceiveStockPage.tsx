@@ -27,7 +27,7 @@ export default function ReceiveStockPage() {
 
   useEffect(() => {
     api.get('/warehouses').then(r => setWarehouses(r.data?.data?.data ?? r.data?.data ?? r.data ?? [])).catch(() => {});
-    api.get('/products', { params: { limit: 100 } }).then(r => setProducts(r.data?.data?.data ?? r.data?.data ?? r.data ?? [])).catch(() => {});
+    api.get('/products', { params: { pageSize: 100 } }).then(r => setProducts(r.data?.data?.data ?? r.data?.data ?? r.data ?? [])).catch(() => {});
   }, []);
 
   const onSubmit = async (form: InventoryActionForm) => {

@@ -49,7 +49,7 @@ export default function SalesOrdersPage() {
     fetch();
     api.get('/customers').then(({ data: r }) => setCustomers(r.data?.data ?? r.data ?? r ?? [])).catch(() => {});
     api.get('/warehouses').then(({ data: r }) => setWarehouses(r.data?.data ?? r.data ?? r ?? [])).catch(() => {});
-    api.get('/products', { params: { limit: 100 } }).then(({ data: r }) => setProducts(r.data?.data ?? r.data ?? r ?? [])).catch(() => {});
+    api.get('/products', { params: { pageSize: 100 } }).then(({ data: r }) => setProducts(r.data?.data ?? r.data ?? r ?? [])).catch(() => {});
   }, [fetch]);
 
   const onSubmit = async (form: SOForm) => {

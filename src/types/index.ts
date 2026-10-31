@@ -93,13 +93,16 @@ export interface Product {
   sku: string;
   barcode?: string;
   description?: string;
+  brand?: string;
   categoryId?: string;
   category?: Category;
   unitId?: string;
   unit?: Unit;
-  costPrice: string;
+  purchaseCost?: string;
+  costPrice?: string;
   sellingPrice: string;
-  reorderLevel: number;
+  wholesalePrice?: string;
+  reorderLevel: number | string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
