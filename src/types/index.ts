@@ -80,7 +80,8 @@ export interface Category {
 export interface Unit {
   id: string;
   name: string;
-  abbreviation: string;
+  symbol: string;
+  abbreviation?: string;
   createdAt: string;
   updatedAt: string;
 }

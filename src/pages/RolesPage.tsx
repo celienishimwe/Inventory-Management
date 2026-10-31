@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
 import { Plus, Edit2, Trash2, Shield } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import api from '../lib/api';
@@ -66,15 +67,22 @@ export default function RolesPage() {
     }
   };
 
-  const handleDelete = async (role: any) => {
-    if (!confirm(`Are you sure you want to delete role "${role.name}"?`)) return;
+  const [roleToDelete, setRoleToDelete] = useState<any | null>(null);
+  const [deletingRole, setDeletingRole] = useState(false);
+
+  const confirmDeleteRole = async () => {
+    if (!roleToDelete) return;
+    setDeletingRole(true);
     try {
-      await api.delete(`/roles/${role.id}`);
+      await api.delete(`/roles/${roleToDelete.id}`);
       toast.success('Role deleted successfully');
+      setRoleToDelete(null);
       fetchRoles();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg ?? 'Failed to delete role');
+    } finally {
+      setDeletingRole(false);
     }
   };
 
@@ -118,7 +126,7 @@ export default function RolesPage() {
                   <button className="btn-primary btn-sm" onClick={() => openEdit(r)}>
                     <Edit2 size={13} /> Edit
                   </button>
-                  <button className="btn-danger btn-sm" onClick={() => handleDelete(r)}>
+                  <button className="btn-danger btn-sm" onClick={() => setRoleToDelete(r)}>
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -153,6 +161,19 @@ export default function RolesPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        isOpen={!!roleToDelete}
+        onClose={() => !deletingRole && setRoleToDelete(null)}
+        onConfirm={confirmDeleteRole}
+        title="Delete Role"
+        message="Are you sure you want to delete this role? Any users assigned to this role will lose their permission scope."
+        itemName={roleToDelete?.name}
+        confirmLabel="Delete Role"
+        cancelLabel="Cancel"
+        loading={deletingRole}
+        danger={true}
+      />
     </DashboardLayout>
   );
 }

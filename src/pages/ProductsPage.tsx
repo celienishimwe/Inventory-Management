@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -71,13 +72,22 @@ export default function ProductsPage() {
     }
   };
 
-  const handleDelete = async (p: Product) => {
-    if (!confirm(`Archive product "${p.name}"?`)) return;
+  const [productToArchive, setProductToArchive] = useState<Product | null>(null);
+  const [archiving, setArchiving] = useState(false);
+
+  const confirmArchive = async () => {
+    if (!productToArchive) return;
+    setArchiving(true);
     try {
-      await api.delete(`/products/${p.id}`);
-      toast.success('Product archived');
+      await api.delete(`/products/${productToArchive.id}`);
+      toast.success(`Product "${productToArchive.name}" archived`);
+      setProductToArchive(null);
       fetchProducts();
-    } catch { toast.error('Failed to archive'); }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Failed to archive product');
+    } finally {
+      setArchiving(false);
+    }
   };
 
   const columns = [
@@ -102,7 +112,7 @@ export default function ProductsPage() {
           <button className="btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); openEdit(r); }}>
             <Edit2 size={13} />
           </button>
-          <button className="btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); handleDelete(r); }}>
+          <button className="btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); setProductToArchive(r); }}>
             <Trash2 size={13} />
           </button>
         </div>
@@ -163,7 +173,11 @@ export default function ProductsPage() {
               <label className="form-label">Unit</label>
               <select className="form-input" {...register('unitId')}>
                 <option value="">Select unit</option>
-                {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                {units.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.symbol || u.abbreviation || '—'})
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -185,6 +199,19 @@ export default function ProductsPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        isOpen={!!productToArchive}
+        onClose={() => !archiving && setProductToArchive(null)}
+        onConfirm={confirmArchive}
+        title="Archive Product"
+        message="Are you sure you want to archive this product? Archived products will no longer be available for sales orders."
+        itemName={productToArchive?.name}
+        confirmLabel="Archive Product"
+        cancelLabel="Cancel"
+        loading={archiving}
+        danger={true}
+      />
     </DashboardLayout>
   );
 }

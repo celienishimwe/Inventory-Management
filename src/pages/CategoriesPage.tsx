@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
 import { Plus, Edit2, Trash2, Search, FolderTree, Eye, RefreshCw, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -57,7 +58,8 @@ export default function CategoriesPage() {
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Delete state
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { register, handleSubmit, reset, setError, formState: { errors } } = useForm<CategoryForm>();
 
@@ -172,24 +174,22 @@ export default function CategoriesPage() {
     }
   };
 
-  // ── 5. DELETE /categories/{id} ────────────────────────────────────────────────
-  const handleDelete = async (cat: Category) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete category "${cat.name}"?\nThis action cannot be undone.`
-    );
-    if (!confirmed) return;
+  // ── 5. DELETE /categories/{id} (Professional Confirmation) ───────────────────
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    setDeleting(true);
 
-    setDeletingId(cat.id);
     try {
-      await api.delete(`/categories/${cat.id}`);
-      toast.success(`Category "${cat.name}" deleted successfully`);
-      setCategories(prev => prev.filter(c => c.id !== cat.id));
+      await api.delete(`/categories/${categoryToDelete.id}`);
+      toast.success(`Category "${categoryToDelete.name}" deleted successfully`);
+      setCategories(prev => prev.filter(c => c.id !== categoryToDelete.id));
+      setCategoryToDelete(null);
     } catch (err: any) {
       console.error('Delete error:', err);
       const msg = extractErrorMessage(err, 'Failed to delete category. It may be in use by products.');
       toast.error(msg);
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   };
 
@@ -199,7 +199,6 @@ export default function CategoriesPage() {
     if (!q) return true;
     return (
       c.name?.toLowerCase().includes(q) ||
-      (c.description && c.description.toLowerCase().includes(q)) ||
       c.id.toLowerCase().includes(q)
     );
   });
@@ -273,13 +272,12 @@ export default function CategoriesPage() {
             <Edit2 size={14} color="#1b3a4b" />
           </button>
 
-          {/* Delete (DELETE /categories/{id}) */}
+          {/* Delete (DELETE /categories/{id}) via Professional Modal */}
           <button
             type="button"
             className="topbar-icon-btn"
             style={{ width: 30, height: 30, borderRadius: 6 }}
-            disabled={deletingId === r.id}
-            onClick={() => handleDelete(r)}
+            onClick={() => setCategoryToDelete(r)}
             title="Delete Category"
           >
             <Trash2 size={14} color="#ef4444" />
@@ -506,6 +504,20 @@ export default function CategoriesPage() {
           </div>
         )}
       </Modal>
+
+      {/* Professional Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!categoryToDelete}
+        onClose={() => !deleting && setCategoryToDelete(null)}
+        onConfirm={confirmDeleteCategory}
+        title="Delete Product Category"
+        message="Are you sure you want to permanently delete this product category? Products in this category may be affected."
+        itemName={categoryToDelete?.name}
+        confirmLabel="Delete Category"
+        cancelLabel="Cancel"
+        loading={deleting}
+        danger={true}
+      />
     </DashboardLayout>
   );
 }
