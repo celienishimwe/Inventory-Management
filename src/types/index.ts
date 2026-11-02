@@ -111,22 +111,34 @@ export interface Product {
 // ─── Supplier / Customer ─────────────────────────────────────────────────────
 export interface Supplier {
   id: string;
+  code: string;
   name: string;
   email?: string;
   phone?: string;
   address?: string;
-  contactPerson?: string;
+  country?: string;
+  taxId?: string;
+  notes?: string;
+  contactName?: string;
+  contactPerson?: string; // legacy alias
+  paymentTerms?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Customer {
   id: string;
+  code: string;
   name: string;
   email?: string;
   phone?: string;
   address?: string;
-  contactPerson?: string;
+  country?: string;
+  taxId?: string;
+  notes?: string;
+  contactName?: string;
+  contactPerson?: string; // legacy alias
+  paymentTerms?: string;
   createdAt: string;
   updatedAt: string;
 }
